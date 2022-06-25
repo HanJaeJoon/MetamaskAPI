@@ -6,12 +6,15 @@
   <body>
     <h3>1. Metamask API</h3>
     <button id="btn-connect" class="btn btn-primary">connect</button>
+    <h5>account info</h5>
     <p class="info-text alert alert-secondary">
-      account info: <span id="account-info"></span>
+      Address: <span id="account-info"></span>
     </p>
 
     <h3>2. Opensea API</h3>
     <button id="btn-fetch" class="btn btn-primary">fetch</button>
+    <h5>asset info</h5>
+    <p id="asset-info" class="info-text alert alert-secondary"></p>
   </body>
   <script src="/metamask-onboarding.bundle.js"></script>
   <script type="text/javascript">
@@ -23,6 +26,7 @@
       const btnConnect = document.getElementById("btn-connect");
       const spanAccountInfo = document.getElementById("account-info");
       const btnFetch = document.getElementById("btn-fetch");
+      const spanAssetInfo = document.getElementById("asset-info");
 
       const isMetaMaskInstalled = () => {
         const { ethereum } = window;
@@ -61,7 +65,7 @@
               btnConnect.disabled = false;
             });
         } catch (error) {
-          console.error(error);
+          alert(error);
         }
       };
 
@@ -88,18 +92,20 @@
       };
 
       btnFetch.addEventListener("click", async () => {
-        const api = module.require("api");
-        const sdk = api("@opensea/v1.0#7dtmkl3ojw4vb");
-
-        sdk["retrieving-assets-rinkeby"]({
-          owner: window.user.address,
-          order_direction: "desc",
-          offset: "0",
-          limit: "20",
-          include_orders: "false",
-        })
-          .then((res) => console.log(res))
-          .catch((err) => console.error(err));
+        fetch(`./api/fetchAssets/${window.user.address}`)
+          .then((response) => {
+            if (!response.ok) {
+              throw Error(response.statusText);
+            } else {
+              return response.json();
+            }
+          })
+          .then((data) => {
+            spanAssetInfo.innerText = JSON.stringify(data, null, 4);
+          })
+          .catch((e) => {
+            alert(error);
+          });
       });
 
       metaMaskClientCheck();

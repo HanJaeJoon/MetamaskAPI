@@ -6,7 +6,6 @@
   <body>
     <h3>1. Metamask API</h3>
     <button id="btn-connect" class="btn btn-primary">connect</button>
-    <button id="btn-get-account" class="btn btn-primary">get account</button>
     <p class="info-text alert alert-secondary">
       account info: <span id="account-info"></span>
     </p>
@@ -22,7 +21,6 @@
 
     const initialize = () => {
       const btnConnect = document.getElementById("btn-connect");
-      const btnGetAccount = document.getElementById("btn-get-account");
       const spanAccountInfo = document.getElementById("account-info");
       const btnFetch = document.getElementById("btn-fetch");
 
@@ -40,13 +38,17 @@
         onboarding.startOnboarding();
       };
 
-      const onClickConnect = async () => {
+      const onClickConnectAndGetAddress = async () => {
+        btnConnect.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>Loading...`;
+        btnConnect.disabled = true;
+
         try {
           ethereum
             .request({ method: "eth_requestAccounts" })
             .then(() => {
+              getAddress();
+
               btnConnect.innerText = "Connected";
-              btnConnect.disabled = true;
             })
             .catch((err) => {
               if (err.code === 4001) {
@@ -54,6 +56,9 @@
               } else {
                 console.error(err);
               }
+
+              btnConnect.innerText = "Connect";
+              btnConnect.disabled = false;
             });
         } catch (error) {
           console.error(error);
@@ -67,12 +72,12 @@
           btnConnect.disabled = false;
         } else {
           btnConnect.innerText = "Connect";
-          btnConnect.onclick = onClickConnect;
+          btnConnect.onclick = onClickConnectAndGetAddress;
           btnConnect.disabled = false;
         }
       };
 
-      btnGetAccount.addEventListener("click", async () => {
+      const getAddress = async () => {
         const accounts = await ethereum.request({ method: "eth_accounts" });
 
         window.user.address = accounts[0] || null;
@@ -80,7 +85,7 @@
         if (window.user.address) {
           spanAccountInfo.innerText = window.user.address;
         }
-      });
+      };
 
       btnFetch.addEventListener("click", async () => {
         const api = module.require("api");

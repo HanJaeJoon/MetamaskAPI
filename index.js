@@ -1,41 +1,14 @@
-/*global ethereum, MetamaskOnboarding */
-
-/*
-The `piggybankContract` is compiled from:
-
-  pragma solidity ^0.4.0;
-  contract PiggyBank {
-
-      uint private balance;
-      address public owner;
-
-      function PiggyBank() public {
-          owner = msg.sender;
-          balance = 0;
-      }
-
-      function deposit() public payable returns (uint) {
-          balance += msg.value;
-          return balance;
-      }
-
-      function withdraw(uint withdrawAmount) public returns (uint remainingBal) {
-          require(msg.sender == owner);
-          balance -= withdrawAmount;
-
-          msg.sender.transfer(withdrawAmount);
-
-          return balance;
-      }
-  }
-*/
-
 const forwarderOrigin = "http://localhost:9090";
 
+window.user = {
+  address: null,
+};
+
 const initialize = () => {
-  const onboardButton = document.getElementById("connectButton");
-  const getAccountsButton = document.getElementById("getAccounts");
-  const getAccountsResult = document.getElementById("getAccountsResult");
+  const btnConnect = document.getElementById("btn-connect");
+  const btnGetAccount = document.getElementById("btn-get-account");
+  const spanAccountInfo = document.getElementById("account-info");
+  const btnFetch = document.getElementById("btn-fetch");
 
   const isMetaMaskInstalled = () => {
     const { ethereum } = window;
@@ -45,8 +18,8 @@ const initialize = () => {
   const onboarding = new MetaMaskOnboarding({ forwarderOrigin });
 
   const onClickInstall = () => {
-    onboardButton.innerText = "Onboarding in progress";
-    onboardButton.disabled = true;
+    btnConnect.innerText = "Onboarding in progress";
+    btnConnect.disabled = true;
     onboarding.startOnboarding();
   };
 
@@ -55,36 +28,59 @@ const initialize = () => {
       ethereum
         .request({ method: "eth_requestAccounts" })
         .then(() => {
-          onboardButton.innerText = "Connected";
-          onboardButton.disabled = true;
+          btnConnect.innerText = "Connected";
+          btnConnect.disabled = true;
         })
         .catch((err) => {
-          console.error(err);
+          if (err.code === 4001) {
+            console.log("Please connect to MetaMask.");
+          } else {
+            console.error(err);
+          }
         });
     } catch (error) {
       console.error(error);
     }
   };
 
-  const MetaMaskClientCheck = () => {
+  const metaMaskClientCheck = () => {
     if (!isMetaMaskInstalled()) {
-      onboardButton.innerText = "Click here to install MetaMask!";
-      onboardButton.onclick = onClickInstall;
-      onboardButton.disabled = false;
+      btnConnect.innerText = "Click here to install MetaMask!";
+      btnConnect.onclick = onClickInstall;
+      btnConnect.disabled = false;
     } else {
-      onboardButton.innerText = "Connect";
-      onboardButton.onclick = onClickConnect;
-      onboardButton.disabled = false;
+      btnConnect.innerText = "Connect";
+      btnConnect.onclick = onClickConnect;
+      btnConnect.disabled = false;
     }
   };
 
-  getAccountsButton.addEventListener("click", async () => {
+  btnGetAccount.addEventListener("click", async () => {
     const accounts = await ethereum.request({ method: "eth_accounts" });
 
-    getAccountsResult.innerHTML = accounts[0] || "Not able to get accounts";
+    window.user.address = accounts[0] || null;
+
+    if (window.user.address) {
+      spanAccountInfo.innerText = window.user.address;
+    }
   });
 
-  MetaMaskClientCheck();
+  btnFetch.addEventListener("click", async () => {
+    const api = module.require("api");
+    const sdk = api("@opensea/v1.0#7dtmkl3ojw4vb");
+
+    sdk["retrieving-assets-rinkeby"]({
+      owner: window.user.address,
+      order_direction: "desc",
+      offset: "0",
+      limit: "20",
+      include_orders: "false",
+    })
+      .then((res) => console.log(res))
+      .catch((err) => console.error(err));
+  });
+
+  metaMaskClientCheck();
 };
 
 window.addEventListener("DOMContentLoaded", initialize);

@@ -14,10 +14,8 @@
     <h3>2. Opensea API</h3>
     <button id="btn-fetch" class="btn btn-primary">fetch</button>
   </body>
+  <script src="/metamask-onboarding.bundle.js"></script>
   <script type="text/javascript">
-    import MetaMaskOnboarding from "@metamask/onboarding";
-    const forwarderOrigin = "http://localhost:9090";
-
     window.user = {
       address: null,
     };
@@ -33,7 +31,8 @@
         return Boolean(ethereum && ethereum.isMetaMask);
       };
 
-      const onboarding = new MetaMaskOnboarding({ forwarderOrigin });
+      const host = window.location.host;
+      const onboarding = new MetaMaskOnboarding({ host });
 
       const onClickInstall = () => {
         btnConnect.innerText = "Onboarding in progress";

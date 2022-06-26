@@ -14,7 +14,26 @@
     <h3>2. Opensea API</h3>
     <button id="btn-fetch" class="btn btn-primary">fetch</button>
     <h5>asset info</h5>
-    <p id="asset-info" class="info-text alert alert-secondary"></p>
+    <div class="row">
+      <div id="preview">
+      </div>
+      <div class="accordion w-50" id="divAccordion">
+        <div class="card">
+          <div class="card-header" id="jsonHeader">
+            <h2 class="mb-0">
+              <button class="btn btn-block text-left" type="button" data-toggle="collapse" data-target="#jsonDetail" aria-expanded="false" aria-controls="jsonDetail">
+                JSON
+              </button>
+            </h2>
+          </div>
+          <div id="jsonDetail" class="collapse" aria-labelledby="jsonHeader" data-parent="#divAccordion">
+            <div class="card-body">
+              <pre><code id="asset-info"></code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </body>
   <script src="/metamask-onboarding.bundle.js"></script>
   <script type="text/javascript">
@@ -64,8 +83,8 @@
               btnConnect.innerText = "Connect";
               btnConnect.disabled = false;
             });
-        } catch (error) {
-          alert(error);
+        } catch (e) {
+          alert(e);
         }
       };
 
@@ -92,6 +111,11 @@
       };
 
       btnFetch.addEventListener("click", async () => {
+        if (!window.user.address) {
+          alert("Connect First!");
+          return;
+        }
+
         fetch(`./api/fetchAssets/${window.user.address}`)
           .then((response) => {
             if (!response.ok) {
@@ -102,9 +126,15 @@
           })
           .then((data) => {
             spanAssetInfo.innerText = JSON.stringify(data, null, 4);
+
+            let preview = document.getElementById("preview");
+            let detail = document.getElementById("jsonDetail");
+
+            preview.innerHTML = `<image src=${data.assets[0].image_url} />`;
+            detail.classList.add("show");
           })
           .catch((e) => {
-            alert(error);
+            alert(e);
           });
       });
 

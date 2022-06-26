@@ -2,6 +2,8 @@ import express from "express";
 import path from "path";
 import cors from "cors";
 import api from "api";
+import "dotenv/config";
+import Moralis from "moralis/node.js";
 
 const PORT = process.env.PORT || 9090;
 const __dirname = path.resolve();
@@ -14,13 +16,14 @@ app
   .use(express.static(path.join(__dirname, "static")))
   .set("view engine", "ejs")
   .get("/", (req, res) => res.render("index"))
+  .use(express.json())
   .listen(PORT, () => console.log(`Listening on ${PORT}`));
 
 app
   .options("/api/fetchAssets/:address", cors())
   .get("/api/fetchAssets/:address", cors(), fetchAssets);
 
-const openseaSdk = api('@opensea/v1.0#7dtmkl3ojw4vb');
+const openseaSdk = api("@opensea/v1.0#7dtmkl3ojw4vb");
 
 async function fetchAssets(req, res, next) {
   try {
@@ -33,6 +36,37 @@ async function fetchAssets(req, res, next) {
     });
     res.json(result);
   } catch (e) {
+    res.status(500).send(`Internal Server Error - ${e.message}`);
+  }
+}
+
+const serverUrl = process.env.MORALIS_APP_URL;
+const appId = process.env.MORALIS_APP_ID;
+const moralisSecret = process.env.MORALIS_KEY;
+
+app.post("/api/saveUserData", cors(), saveUserData);
+
+async function saveUserData(req, res) {
+  try {
+    await Moralis.start({
+      serverUrl: serverUrl,
+      appId: appId,
+      masterKey: moralisSecret,
+    });
+
+    let body = req.body;
+
+    const UserAddress = Moralis.Object.extend("UserAddress");
+    const userAddress = new UserAddress();
+
+    userAddress.set("address", body.address);
+    userAddress.set("email", body.email);
+
+    console.log(userAddress);
+
+    await userAddress.save();
+  } catch (e) {
+    console.log(e);
     res.status(500).send(`Internal Server Error - ${e.message}`);
   }
 }

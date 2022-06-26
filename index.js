@@ -73,7 +73,7 @@ app.post("/api/transferAsset", cors(), async (req, res) => {
     await Moralis.enableWeb3({
       // rinkeby
       chainId: 0x4,
-      privateKey: "YOUR-PRIVATE KEY",
+      privateKey: process.env.PRIVATE_KEY,
     });
 
     await Moralis.start({
@@ -88,8 +88,8 @@ app.post("/api/transferAsset", cors(), async (req, res) => {
       type: "erc1155",
       receiver: body.receiver,
       contractAddress: body.contractAddress,
-      tokenId: 1,
-      amount: 1,
+      tokenId: body.tokenId,
+      amount: body.amount,
     };
 
     let transaction = await Moralis.transfer(options);

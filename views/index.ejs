@@ -66,8 +66,16 @@
       <input type="text" class="form-control" id="contractAddress" value="<%- process.env.DEFAULT_ASSET_CONTRACT %>" />
     </div>
     <div class="form-group">
-      <label for="receiver">receiver</label>
+      <label for="receiver">Receiver</label>
       <input type="text" class="form-control" id="receiver" value="<%- process.env.DEFAULT_RECEIVER_ADDRESS %>" />
+    </div>
+    <div class="form-group">
+      <label for="tokenId">Token ID</label>
+      <input type="text" class="form-control" id="tokenId" value="" />
+    </div>
+    <div class="form-group">
+      <label for="amount">Amount</label>
+      <input type="text" class="form-control" id="amount" value="1" />
     </div>
     <button id="btn-transfer" class="btn btn-primary">Transfer</button>
   </body>
@@ -164,6 +172,11 @@
             }
           })
           .then((data) => {
+            if (data.assets.length === 0) {
+              alert("no assets!");
+              return;
+            }
+
             spanAssetInfo.innerText = JSON.stringify(data, null, 4);
 
             let preview = document.getElementById("preview");
@@ -210,6 +223,8 @@
       btnTransfer.addEventListener("click", async () => {
         let receiver = document.getElementById("receiver").value;
         let contractAddress = document.getElementById("contractAddress").value;
+        let tokenId = document.getElementById("tokenId").value;
+        let amount = document.getElementById("amount").value;
 
         if (!window.user.address) {
           alert("Connect First!");
@@ -226,6 +241,20 @@
           return;
         }
 
+        const options = {
+          type: "erc1155",
+          receiver: receiver,
+          contractAddress: contractAddress,
+          tokenId: tokenId,
+          amount: amount,
+        };
+
+        await Moralis.enableWeb3();
+
+        let transaction = await Moralis.transfer(options);
+        return;
+
+        // react로 구현할지?
         fetch("/api/transferAsset", {
           method: "POST",
           headers: {

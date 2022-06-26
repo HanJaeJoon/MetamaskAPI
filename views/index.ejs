@@ -60,14 +60,16 @@
     </div>
     <button id="btn-save-user-info" class="btn btn-primary">Save</button>
 
-    <h5>Transfer Asset</h5>
-    <div class="input-group flex-nowrap">
-      <div class="input-group-prepend">
-        <span class="input-group-text">sendTo</span>
-      </div>
-      <input id="sendTo" type="text" class="form-control" placeholder="Address" aria-label="Address" aria-describedby="addon-wrapping" 
-        value="<%- process.env.DEFAULT_SEND_TO_ADDRESS %>" />
+    <h5 class="mt-3">Transfer Asset</h5>
+    <div class="form-group">
+      <label for="contractAddress">Asset</label>
+      <input type="text" class="form-control" id="contractAddress" value="<%- process.env.DEFAULT_ASSET_CONTRACT %>" />
     </div>
+    <div class="form-group">
+      <label for="receiver">receiver</label>
+      <input type="text" class="form-control" id="receiver" value="<%- process.env.DEFAULT_RECEIVER_ADDRESS %>" />
+    </div>
+    <button id="btn-transfer" class="btn btn-primary">Transfer</button>
   </body>
   <script src="/metamask-onboarding.bundle.js"></script>
   <script type="text/javascript">
@@ -81,6 +83,7 @@
       const btnFetch = document.getElementById("btn-fetch");
       const spanAssetInfo = document.getElementById("asset-info");
       const btnSaveUserInfo = document.getElementById("btn-save-user-info");
+      const btnTransfer = document.getElementById("btn-transfer");
 
       const isMetaMaskInstalled = () => {
         const { ethereum } = window;
@@ -190,6 +193,47 @@
           body: JSON.stringify({
             address: window.user.address,
             email: email,
+          })
+        })
+          .then(function (response) {
+            if (response.ok) {
+              console.log("POST success.");
+              return;
+            }
+            throw new Error("POST failed.");
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+      });
+
+      btnTransfer.addEventListener("click", async () => {
+        let receiver = document.getElementById("receiver").value;
+        let contractAddress = document.getElementById("contractAddress").value;
+
+        if (!window.user.address) {
+          alert("Connect First!");
+          return;
+        }
+
+        if (!receiver) {
+          alert("input receiver!");
+          return;
+        }
+
+        if (!contractAddress) {
+          alert("input asset address!");
+          return;
+        }
+
+        fetch("/api/transferAsset", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            receiver: receiver,
+            contractAddress: contractAddress,
           })
         })
           .then(function (response) {

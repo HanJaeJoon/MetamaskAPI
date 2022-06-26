@@ -44,9 +44,7 @@ const serverUrl = process.env.MORALIS_APP_URL;
 const appId = process.env.MORALIS_APP_ID;
 const moralisSecret = process.env.MORALIS_KEY;
 
-app.post("/api/saveUserData", cors(), saveUserData);
-
-async function saveUserData(req, res) {
+app.post("/api/saveUserData", cors(), async (req, res) => {
   try {
     await Moralis.start({
       serverUrl: serverUrl,
@@ -66,7 +64,38 @@ async function saveUserData(req, res) {
 
     await userAddress.save();
   } catch (e) {
+    res.status(500).send(`Internal Server Error - ${e.message}`);
+  }
+});
+
+app.post("/api/transferAsset", cors(), async (req, res) => {
+  try {
+    await Moralis.enableWeb3({
+      // rinkeby
+      chainId: 0x4,
+      privateKey: "YOUR-PRIVATE KEY",
+    });
+
+    await Moralis.start({
+      serverUrl: serverUrl,
+      appId: appId,
+      masterKey: moralisSecret,
+    });
+
+    let body = req.body;
+
+    const options = {
+      type: "erc1155",
+      receiver: body.receiver,
+      contractAddress: body.contractAddress,
+      tokenId: 1,
+      amount: 1,
+    };
+
+    let transaction = await Moralis.transfer(options);
+    let result = await transaction.wait();
+  } catch (e) {
     console.log(e);
     res.status(500).send(`Internal Server Error - ${e.message}`);
   }
-}
+});

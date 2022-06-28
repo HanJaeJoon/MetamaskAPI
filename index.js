@@ -3,9 +3,11 @@ import path from 'path';
 import cors from 'cors';
 import api from 'api';
 import 'dotenv/config';
+// eslint-disable-next-line import/extensions
 import Moralis from 'moralis/node.js';
 
 const PORT = process.env.PORT || 9090;
+// eslint-disable-next-line no-underscore-dangle
 const __dirname = path.resolve();
 
 const app = express();
@@ -95,8 +97,8 @@ app.post('/api/transferAsset', cors(), async (req, res) => {
 
     try {
       await Moralis.transfer(options);
-    } catch (error) {
-      console.log(error);
+    } catch (e) {
+      console.log(e);
     }
 
     res.sendStatus(200);

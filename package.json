@@ -1,5 +1,5 @@
 {
-  "name": "metamaskapi",
+  "name": "web3api",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/HanJaeJoon/MetamaskAPI.git"
+    "url": "git+https://github.com/HanJaeJoon/Web3API.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/HanJaeJoon/MetamaskAPI/issues"
+    "url": "https://github.com/HanJaeJoon/Web3API/issues"
   },
-  "homepage": "https://github.com/HanJaeJoon/MetamaskAPI#readme",
+  "homepage": "https://github.com/HanJaeJoon/Web3API#readme",
   "dependencies": {
     "api": "^4.5.1",
     "cors": "^2.8.5",

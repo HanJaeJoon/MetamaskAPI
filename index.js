@@ -17,7 +17,9 @@ app
   .set('views', path.join(__dirname, 'views'))
   .use(express.static(path.join(__dirname, 'static')))
   .set('view engine', 'ejs')
-  .get('/', (req, res) => res.render('index'))
+  .get('/', (req, res) => res.render('email'))
+  .get('/test', (req, res) => res.render('test'))
+  .get('/admin', (req, res) => res.render('admin'))
   .use(express.json())
   .listen(PORT, () => console.log(`Listening on ${PORT}`));
 
@@ -61,7 +63,29 @@ app.post('/api/saveUserData', cors(), async (req, res) => {
     userAddress.set('address', body.address);
     userAddress.set('email', body.email);
 
-    console.log(userAddress);
+    await userAddress.save();
+
+    res.sendStatus(200);
+  } catch (e) {
+    res.status(500).send(`Internal Server Error - ${e.message}`);
+  }
+});
+
+app.post('/api/saveUserAddress', cors(), async (req, res) => {
+  try {
+    await Moralis.start({
+      serverUrl,
+      appId,
+      masterKey: moralisSecret,
+    });
+
+    const { body } = req;
+
+    const UserAddress = Moralis.Object.extend('UserAddress');
+    const userAddress = new UserAddress();
+
+    userAddress.set('address', body.address);
+    userAddress.set('email', body.email);
 
     await userAddress.save();
   } catch (e) {

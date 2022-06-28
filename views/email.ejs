@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <%- include("./shared/header.ejs") %>
+</head>
+
+<body class="p-5">
+  <h3>NFT 신청</h3>
+  <div class="form-group">
+    <label for="address">Address</label>
+    <input type="text" class="form-control" id="address" value="" readonly />
+    <small>* 지갑 연동을 마치면 자동으로 입력됩니다.</small>
+  </div>
+  <div class="form-group">
+    <label for="email">Email</label>
+    <input type="email" class="form-control" id="email" value="" disabled />
+  </div>
+  <button id="btn-save" class="btn btn-primary">NFT 신청하기</button>
+
+  <h3 class="mt-5">내 NFT</h3>
+  <button id="btn-fetch" class="btn btn-primary my-3">조회하기</button>
+  <table class="table table-hover">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col"></th>
+      </tr>
+    </thead>
+    <tbody id="table-body">
+    </tbody>
+  </table>
+
+  <div id="install-modal" class="modal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Metamask 설치</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>Metamask 지갑과 연동을 위해서 설치가 필요합니다.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
+          <button id="install" type="button" class="btn btn-primary">설치</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+<script src="/metamask-onboarding.bundle.js"></script>
+<script src="/email.js"></script>
+
+</html>

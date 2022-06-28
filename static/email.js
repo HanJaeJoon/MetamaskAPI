@@ -72,13 +72,14 @@ const initialize = () => {
       },
       body: JSON.stringify(userInfo),
     })
-      .then((response) => {
+      .then(async (response) => {
         if (response.ok) {
           alert('NFT 신청 성공!');
           return;
         }
 
-        throw new Error('POST failed.');
+        const text = await response.text();
+        throw new Error(text);
       })
       .catch((error) => {
         alert(`에러 발생!\n${error}`);
@@ -101,12 +102,13 @@ const initialize = () => {
     tableBody.innerHTML = '';
 
     fetch(`./api/fetchAssets/${userInfo.address}`)
-      .then((response) => {
+      .then(async (response) => {
         if (response.ok) {
           return response.json();
         }
 
-        throw new Error('POST failed.');
+        const text = await response.text();
+        throw new Error(text);
       })
       .then((data) => {
         const { assets } = data;

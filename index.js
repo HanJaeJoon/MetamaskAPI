@@ -13,7 +13,6 @@ const __dirname = path.resolve();
 const app = express();
 
 app
-  .use(express.static(path.join(__dirname, 'pages')))
   .set('views', path.join(__dirname, 'views'))
   .use(express.static(path.join(__dirname, 'static')))
   .set('view engine', 'ejs')
@@ -82,12 +81,25 @@ app.post('/api/saveUserAddress', cors(), async (req, res) => {
     const { body } = req;
 
     const UserAddress = Moralis.Object.extend('UserAddress');
+
+    // validation
+    const query = new Moralis.Query(UserAddress);
+    query.equalTo('email', body.email);
+    const results = await query.find();
+
+    if (results.length > 0) {
+      res.status(500).send('이미 신청한 email입니다.');
+      return;
+    }
+
     const userAddress = new UserAddress();
 
     userAddress.set('address', body.address);
     userAddress.set('email', body.email);
 
     await userAddress.save();
+
+    res.sendStatus(200);
   } catch (e) {
     res.status(500).send(`Internal Server Error - ${e.message}`);
   }

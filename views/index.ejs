@@ -246,7 +246,7 @@
         return;
       }
 
-      const options = {
+      const parameters = {
         type: "erc1155",
         receiver: receiver,
         contractAddress: contractAddress,
@@ -254,33 +254,19 @@
         amount: amount,
       };
 
-      await Moralis.enableWeb3();
-
-      try {
-        let transaction = await Moralis.transfer(options);
-      } catch (error) {
-        console.log(error)
-      }
-
-      return;
-
-      // react로 구현할지?
       fetch("/api/transferAsset", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          receiver: receiver,
-          contractAddress: contractAddress,
-        })
+        body: JSON.stringify(parameters)
       })
         .then(function (response) {
           if (response.ok) {
-            console.log("POST success.");
+            alert("request success!");
             return;
           }
-          throw new Error("POST failed.");
+          throw new Error("request failed.");
         })
         .catch(function (error) {
           console.log(error);

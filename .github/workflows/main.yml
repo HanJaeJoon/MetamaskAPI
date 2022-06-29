@@ -1,0 +1,27 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: akhileshns/heroku-deploy@v3.12.12 # This is the action
+        with:
+          heroku_email: "jj2726@gmail.com"
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+          heroku_app_name: "web3-jj"
+          env_file: ".env"
+        env:
+          NFT_SENDER_ADDRESS: ${{secrets.NFT_SENDER_ADDRESS}}
+          NFT_SENDER_PRIVATE_KEY: ${{secrets.NFT_SENDER_PRIVATE_KEY}}
+          DEFAULT_ASSET_CONTRACT: ${{secrets.DEFAULT_ASSET_CONTRACT}}
+          DEFAULT_RECEIVER_ADDRESS: ${{secrets.DEFAULT_RECEIVER_ADDRESS}}
+          MORALIS_APP_URL: ${{secrets.MORALIS_APP_URL}}
+          MORALIS_APP_ID: ${{secrets.MORALIS_APP_ID}}
+          MORALIS_KEY: ${{secrets.MORALIS_KEY}}
+          MORALIS_SPEEDY_NODE_API_KEY: ${{secrets.MORALIS_SPEEDY_NODE_API_KEY}}

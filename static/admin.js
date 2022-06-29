@@ -128,7 +128,12 @@ const initialize = async () => {
 
       try {
         const newAccounts = await ethereum.request({ method: 'eth_accounts' });
-        handleNewAccounts(newAccounts);
+
+        if (newAccounts.length > 0) {
+          handleNewAccounts(newAccounts);
+        } else {
+          ethereum.request({ method: 'eth_requestAccounts' });
+        }
       } catch (err) {
         console.error('Error on init when getting accounts', err);
       }

@@ -29,11 +29,58 @@ const initialize = async () => {
 
   const isMetaMaskInstalled = () => Boolean(ethereum && ethereum.isMetaMask);
 
+  const fetchNftData = async () => {
+    if (!userInfo.address) {
+      alert('지갑 연동을 완료해주세요.');
+      return;
+    }
+
+    const tableBody = document.getElementById('table-body');
+
+    tableBody.innerHTML = '';
+
+    fetch(`./api/fetchAssets/${userInfo.address}`)
+      .then(async (response) => {
+        if (response.ok) {
+          return response.json();
+        }
+
+        const text = await response.text();
+        throw new Error(text);
+      })
+      .then((data) => {
+        const { assets } = data;
+        let htmlString = '';
+
+        for (let i = 0; i < assets.length; i += 1) {
+          const asset = assets[i];
+
+          htmlString += `
+            <tr>
+              <td scope="row">${i + 1}</td>
+              <td>
+                <a href="${asset.permalink}">
+                  <image src="${asset.image_thumbnail_url}">
+                </a>
+              </td>
+            </tr>
+          `;
+        }
+
+        tableBody.innerHTML = htmlString;
+      })
+      .catch((error) => {
+        alert(`에러 발생!\n${error}`);
+      });
+  };
+
   function handleNewAccounts(newAccounts) {
     const newAccount = newAccounts[0];
 
     userInfo.address = newAccount;
     address.value = newAccount;
+
+    fetchNftData();
   }
 
   const metaMaskClientCheck = async () => {
@@ -93,50 +140,7 @@ const initialize = async () => {
       });
   });
 
-  btnFetch.addEventListener('click', async () => {
-    if (!userInfo.address) {
-      alert('지갑 연동을 완료해주세요.');
-      return;
-    }
-
-    const tableBody = document.getElementById('table-body');
-
-    tableBody.innerHTML = '';
-
-    fetch(`./api/fetchAssets/${userInfo.address}`)
-      .then(async (response) => {
-        if (response.ok) {
-          return response.json();
-        }
-
-        const text = await response.text();
-        throw new Error(text);
-      })
-      .then((data) => {
-        const { assets } = data;
-        let htmlString = '';
-
-        for (let i = 0; i < assets.length; i += 1) {
-          const asset = assets[i];
-
-          htmlString += `
-            <tr>
-              <td scope="row">${i + 1}</td>
-              <td>
-                <a href="${asset.permalink}">
-                  <image src="${asset.image_thumbnail_url}">
-                </a>
-              </td>
-            </tr>
-          `;
-        }
-
-        tableBody.innerHTML = htmlString;
-      })
-      .catch((error) => {
-        alert(`에러 발생!\n${error}`);
-      });
-  });
+  btnFetch.addEventListener('click', fetchNftData);
 
   setEmail();
   metaMaskClientCheck();

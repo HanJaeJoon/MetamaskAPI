@@ -30,8 +30,10 @@ const initialize = async () => {
   const isMetaMaskInstalled = () => Boolean(ethereum && ethereum.isMetaMask);
 
   function handleNewAccounts(newAccounts) {
-    userInfo.address = newAccounts;
-    address.value = newAccounts;
+    const newAccount = newAccounts[0];
+
+    userInfo.address = newAccount;
+    address.value = newAccount;
   }
 
   const metaMaskClientCheck = async () => {

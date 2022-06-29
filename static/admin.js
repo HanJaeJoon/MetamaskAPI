@@ -87,15 +87,22 @@ const initialize = async () => {
           const asset = assets[i];
 
           htmlString += `
-              <tr class="nft-row">
-                <td scope="row"><input type="radio" name="nfts"></td>
-                <td>
-                  <a href="${asset.permalink}">
-                    <image src="${asset.image_thumbnail_url}">
-                  </a>
-                </td>
-              </tr>
-            `;
+            <tr class="nft-row">
+              <td scope="row">
+                <input type="radio" name="nfts"
+                  data-contract-schema="${asset.asset_contract.schema_name}"
+                  data-contract-address="${asset.asset_contract.address}"
+                  data-token-id="${asset.token_id}"
+                >
+              </td>
+              <td>
+                <a href="${asset.permalink}">
+                  <image src="${asset.image_thumbnail_url}">
+                </a>
+              </td>
+              <td>${asset.asset_contract.schema_name}</td>
+            </tr>
+          `;
         }
 
         tableBody.innerHTML = htmlString;
@@ -106,8 +113,10 @@ const initialize = async () => {
   };
 
   function handleNewAccounts(newAccounts) {
-    userInfo.address = newAccounts;
-    address.value = newAccounts;
+    const newAccount = newAccounts[0];
+
+    userInfo.address = newAccount;
+    address.value = newAccount;
 
     fetchNftData();
   }
@@ -135,12 +144,51 @@ const initialize = async () => {
   btnFetchNft.addEventListener('click', fetchNftData);
   btnFetchUser.addEventListener('click', fetchUserData);
   btnTransferNft.addEventListener('click', async () => {
+    if (!userInfo.address) {
+      alert('지갑 연동을 완료해주세요.');
+      return;
+    }
 
+    const checkedInput = document.querySelector('#nft-table-body input[name="nfts"]:checked');
+
+    if (!checkedInput) {
+      alert('전송할 NFT를 선택해주세요.');
+      return;
+    }
+
+    const contractSchema = checkedInput.getAttribute('data-contract-schema');
+    const contractAddress = checkedInput.getAttribute('data-contract-address');
+    const tokenId = checkedInput.getAttribute('data-token-id');
+
+    const parameters = {
+      address: userInfo.address,
+      type: contractSchema,
+      contractAddress,
+      tokenId,
+    };
+
+    fetch('/api/transferNfts', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(parameters),
+    })
+      .then(async (response) => {
+        if (response.ok) {
+          return response.json();
+        }
+
+        const text = await response.text();
+        throw new Error(text);
+      })
+      .catch((error) => {
+        alert(`에러 발생!\n${error}`);
+      });
   });
 
   await metaMaskClientCheck();
   fetchUserData();
-  fetchNftData();
 };
 
 window.addEventListener('DOMContentLoaded', initialize);

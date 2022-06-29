@@ -5,7 +5,6 @@ import api from 'api';
 import 'dotenv/config';
 // eslint-disable-next-line import/extensions
 import Moralis from 'moralis/node.js';
-import Web3 from 'web3';
 
 const PORT = process.env.PORT || 9090;
 // eslint-disable-next-line no-underscore-dangle

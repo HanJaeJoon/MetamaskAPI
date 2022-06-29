@@ -15,7 +15,6 @@ jobs:
           heroku_email: "jj2726@gmail.com"
           heroku_api_key: ${{secrets.HEROKU_API_KEY}}
           heroku_app_name: "web3-jj"
-          env_file: ".env"
         env:
           HD_NFT_SENDER_ADDRESS: ${{secrets.NFT_SENDER_ADDRESS}}
           HD_NFT_SENDER_PRIVATE_KEY: ${{secrets.NFT_SENDER_PRIVATE_KEY}}

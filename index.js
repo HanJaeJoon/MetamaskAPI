@@ -46,30 +46,6 @@ const serverUrl = process.env.MORALIS_APP_URL;
 const appId = process.env.MORALIS_APP_ID;
 const moralisSecret = process.env.MORALIS_KEY;
 
-app.post('/api/saveUserData', cors(), async (req, res) => {
-  try {
-    await Moralis.start({
-      serverUrl,
-      appId,
-      masterKey: moralisSecret,
-    });
-
-    const { body } = req;
-
-    const UserAddress = Moralis.Object.extend('UserAddress');
-    const userAddress = new UserAddress();
-
-    userAddress.set('address', body.address);
-    userAddress.set('email', body.email);
-
-    await userAddress.save();
-
-    res.sendStatus(200);
-  } catch (e) {
-    res.status(500).send(`Internal Server Error - ${e.message}`);
-  }
-});
-
 app.post('/api/saveUserAddress', cors(), async (req, res) => {
   try {
     await Moralis.start({
@@ -92,6 +68,60 @@ app.post('/api/saveUserAddress', cors(), async (req, res) => {
       return;
     }
 
+    const userAddress = new UserAddress();
+
+    userAddress.set('address', body.address);
+    userAddress.set('email', body.email);
+
+    await userAddress.save();
+
+    res.sendStatus(200);
+  } catch (e) {
+    res.status(500).send(`Internal Server Error - ${e.message}`);
+  }
+});
+
+app.get('/api/fetchUsers', cors(), async (req, res) => {
+  try {
+    await Moralis.start({
+      serverUrl,
+      appId,
+      masterKey: moralisSecret,
+    });
+
+    const UserAddress = Moralis.Object.extend('UserAddress');
+    const query = new Moralis.Query(UserAddress);
+
+    const results = await query.find();
+    const data = [];
+
+    for (let i = 0; i < results.length; i += 1) {
+      const object = results[i];
+      const address = object.get('address');
+      const email = object.get('email');
+      const isSent = object.get('isSent');
+
+      data.push({ address, email, isSent });
+    }
+
+    res.json(data);
+  } catch (e) {
+    res.status(500).send(`Internal Server Error - ${e.message}`);
+  }
+});
+
+// from test page
+app.post('/api/saveUserData', cors(), async (req, res) => {
+  try {
+    await Moralis.start({
+      serverUrl,
+      appId,
+      masterKey: moralisSecret,
+    });
+
+    const { body } = req;
+
+    const UserAddress = Moralis.Object.extend('UserAddress');
     const userAddress = new UserAddress();
 
     userAddress.set('address', body.address);

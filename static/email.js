@@ -1,4 +1,4 @@
-const initialize = () => {
+const initialize = async () => {
   const userInfo = { address: null, email: null };
   // controls
   const inputEmail = document.getElementById('email');
@@ -114,7 +114,7 @@ const initialize = () => {
 
           htmlString += `
             <tr>
-              <th scope="row">${i + 1}</th>
+              <td scope="row">${i + 1}</td>
               <td>
                 <a href="${asset.permalink}">
                   <image src="${asset.image_thumbnail_url}">

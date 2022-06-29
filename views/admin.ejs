@@ -3,11 +3,11 @@
 
 <head>
   <%- include("./shared/header.ejs") %>
-  <style>
-    .nft-row {
-      cursor: pointer;
-    }
-  </style>
+    <style>
+      .nft-row {
+        cursor: pointer;
+      }
+    </style>
 </head>
 
 <body class="p-5">
@@ -19,32 +19,36 @@
 
   <h3 class="mt-5">회원 목록</h3>
   <button id="btn-fetch-user" class="btn btn-primary my-3">조회하기</button>
-  <table class="table table-hover">
-    <thead>
-      <tr>
-        <th scope="col">#</th>
-        <th scope="col">Email</th>
-        <th scope="col">Address</th>
-        <th scope="col">전송여부</th>
-      </tr>
-    </thead>
-    <tbody id="user-table-body">
-    </tbody>
-  </table>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th scope="col" class="col-1">#</th>
+          <th scope="col" class="col-3">Email</th>
+          <th scope="col" class="col-3">Address</th>
+          <th scope="col" class="col-1">전송여부</th>
+        </tr>
+      </thead>
+      <tbody id="user-table-body">
+      </tbody>
+    </table>
+  </div>
 
   <h3 class="mt-5">NFT 목록</h3>
   <button id="btn-fetch-nft" class="btn btn-primary my-3">조회하기</button>
-  <table class="table table-hover">
-    <thead>
-      <tr>
-        <th scope="col" class="col-1">선택</th>
-        <th scope="col" class="col-5">NFT</th>
-        <th scope="col" class="col-1">Contract Schema</th>
-      </tr>
-    </thead>
-    <tbody id="nft-table-body">
-    </tbody>
-  </table>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th scope="col" class="col-1">선택</th>
+          <th scope="col" class="col-5">NFT</th>
+          <th scope="col" class="col-1">Contract Schema</th>
+        </tr>
+      </thead>
+      <tbody id="nft-table-body">
+      </tbody>
+    </table>
+  </div>
   <button id="btn-transfer-nft" class="btn btn-danger btn-lg btn-block my-3">NFT 전송하기</button>
 
   <div id="install-modal" class="modal" tabindex="-1">

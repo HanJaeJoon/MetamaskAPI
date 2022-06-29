@@ -87,11 +87,6 @@ const initialize = () => {
   });
 
   btnFetch.addEventListener('click', async () => {
-    if (!userInfo.email) {
-      alert('잘못된 접근입니다.');
-      return;
-    }
-
     if (!userInfo.address) {
       alert('지갑 연동을 완료해주세요.');
       return;

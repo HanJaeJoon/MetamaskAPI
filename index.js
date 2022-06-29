@@ -136,7 +136,7 @@ app.post('/api/transferNfts', cors(), async (req, res) => {
     // 반대로 NFT의 소유권이 해당 private key로 로그인한 사용자에게 있는지를 검증
 
     // 1. 서버에 저장된 sender address인지 검증
-    if (address !== process.env.NFT_SENDER_ADDRESS) {
+    if (address.toUpperCase() !== process.env.NFT_SENDER_ADDRESS.toUpperCase()) {
       res.status(401).send('올바르지 않은 사용자입니다.');
       return;
     }
@@ -154,7 +154,7 @@ app.post('/api/transferNfts', cors(), async (req, res) => {
     for (let i = 0; i < data.length; i += 1) {
       const nft = data[i];
 
-      if (nft.owner_of === 'process.env.NFT_SENDER_ADDRESS') {
+      if (nft.owner_of.toUpperCase() === process.env.NFT_SENDER_ADDRESS.toUpperCase()) {
         hasOwnership = true;
         break;
       }
@@ -167,8 +167,6 @@ app.post('/api/transferNfts', cors(), async (req, res) => {
 
     // receiver 추출
     const UserAddress = Moralis.Object.extend('UserAddress');
-
-    // validation
     const query = new Moralis.Query(UserAddress);
     query.equalTo('isSent', false);
     const results = await query.find();
@@ -179,25 +177,32 @@ app.post('/api/transferNfts', cors(), async (req, res) => {
     }
 
     // NFT 전송
+    let successCount = 0;
+
     for (let i = 0; i < results.length; i += 1) {
       const user = results[i];
+      const receiver = user.get('address');
 
-      try {
-        const options = {
-          type,
-          receiver,
-          contractAddress,
-          tokenId,
-          amount: 1,
-        };
+      const option = {
+        type: type.toLowerCase(),
+        receiver,
+        contractAddress,
+        tokenId,
+        amount: 1,
+      };
 
-        await Moralis.transfer(options);
-      } catch (e) {
-        console.log(e);
-      }
+      // eslint-disable-next-line no-await-in-loop
+      await Moralis.transfer(option);
+
+      user.set('isSent', true);
+
+      // eslint-disable-next-line no-await-in-loop
+      await user.save();
+
+      successCount += 1;
     }
 
-    res.sendStatus(200);
+    res.status(200).send(`${successCount} 건 전송 성공!`);
   } catch (e) {
     console.log(e);
     res.status(500).send(`Internal Server Error - ${e.message}`);

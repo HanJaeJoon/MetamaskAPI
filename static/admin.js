@@ -156,6 +156,9 @@ const initialize = async () => {
       return;
     }
 
+    btnTransferNft.innerHTML = '<span class="spinner-border spinner-border-sm mr-1 align-middle" role="status" aria-hidden="true"></span>Loading...';
+    btnTransferNft.disabled = true;
+
     const contractSchema = checkedInput.getAttribute('data-contract-schema');
     const contractAddress = checkedInput.getAttribute('data-contract-address');
     const tokenId = checkedInput.getAttribute('data-token-id');
@@ -175,15 +178,22 @@ const initialize = async () => {
       body: JSON.stringify(parameters),
     })
       .then(async (response) => {
+        const text = await response.text();
+
         if (response.ok) {
-          return response.json();
+          fetchUserData();
+          alert(text);
+          return;
         }
 
-        const text = await response.text();
         throw new Error(text);
       })
       .catch((error) => {
         alert(`에러 발생!\n${error}`);
+      })
+      .finally(() => {
+        btnTransferNft.innerHTML = 'NFT 전송하기';
+        btnTransferNft.disabled = false;
       });
   });
 

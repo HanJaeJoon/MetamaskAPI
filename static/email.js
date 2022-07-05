@@ -4,9 +4,7 @@ const initialize = async () => {
   const inputEmail = document.getElementById('email');
 
   const setEmail = () => {
-    const queryString = window.location.search;
-    const params = new URLSearchParams(queryString);
-    const email = params.get('email');
+    const email = inputEmail.value;
 
     if (email) {
       userInfo.email = email;

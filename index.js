@@ -33,7 +33,16 @@ app
   .set('views', path.join(__dirname, 'views'))
   .use(express.static(path.join(__dirname, 'static')))
   .set('view engine', 'ejs')
-  .get('/', (req, res) => res.render('email'))
+  .get('/:authKey', async (req, res) => {
+    const pool = await sql.connect(sqlConfig);
+    const result = await pool.request()
+      .input('authKey', sql.Char, req.params.authKey)
+      .query(`
+        SELECT * FROM USER_INFO WHERE AuthKey = @authKey
+      `);
+
+    return res.render('email', { email: result.recordset[0]?.Email });
+  })
   .get('/test', (req, res) => res.render('test'))
   .get('/admin', (req, res) => res.render('admin'))
   .use(express.json())
@@ -151,7 +160,7 @@ app.post('/api/transferNfts', cors(), async (req, res) => {
 
     // 2. 선택한 NFT의 소유가 sender address인지 검증
     /*
-    -- Opensea의 lazy minted로 인한 소유권 조회가 불가능
+    -- Opensea의 lazy minted로 인해 최초 minting된 NFT는 소유권 조회가 불가능
     -- 참고: https://forum.moralis.io/t/nft-minted-on-opensea-does-not-show-up-in-ethnftowners/1769
     const userNfts = await Moralis.Web3API.token.getTokenIdOwners({
       chain: 'rinkeby',

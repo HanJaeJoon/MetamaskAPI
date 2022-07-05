@@ -33,6 +33,8 @@ app
   .set('views', path.join(__dirname, 'views'))
   .use(express.static(path.join(__dirname, 'static')))
   .set('view engine', 'ejs')
+  .get('/test', (req, res) => res.render('test'))
+  .get('/admin', (req, res) => res.render('admin'))
   .get('/:authKey', async (req, res) => {
     const pool = await sql.connect(sqlConfig);
     const result = await pool.request()
@@ -43,8 +45,6 @@ app
 
     return res.render('email', { email: result.recordset[0]?.Email });
   })
-  .get('/test', (req, res) => res.render('test'))
-  .get('/admin', (req, res) => res.render('admin'))
   .use(express.json())
   .listen(PORT, () => console.log(`Listening on ${PORT}`));
 
@@ -301,4 +301,8 @@ app.post('/api/transferAsset', cors(), async (req, res) => {
     console.log(e);
     res.status(500).send(`Internal Server Error - ${e.message}`);
   }
+});
+
+app.use((req, res) => {
+  res.status(404).redirect('https://http.cat/404');
 });

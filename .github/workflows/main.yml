@@ -24,3 +24,9 @@ jobs:
           HD_MORALIS_APP_ID: ${{secrets.MORALIS_APP_ID}}
           HD_MORALIS_KEY: ${{secrets.MORALIS_KEY}}
           HD_MORALIS_SPEEDY_NODE_API_KEY: ${{secrets.MORALIS_SPEEDY_NODE_API_KEY}}
+          HD_DB_SERVER: ${{secrets.DB_SERVER}}
+          HD_DB_NAME: ${{secrets.DB_NAME}}
+          HD_DB_USER: ${{secrets.DB_USER}}
+          HD_DB_PASSWORD: ${{secrets.DB_PASSWORD}}
+          HD_GMAIL_ID: ${{secrets.GMAIL_ID}}
+          HD_GMAIL_PASSWORD: ${{secrets.GMAIL_PASSWORD}}

@@ -5,10 +5,27 @@ import api from 'api';
 import 'dotenv/config';
 // eslint-disable-next-line import/extensions
 import Moralis from 'moralis/node.js';
+import sql from 'mssql';
 
 const PORT = process.env.PORT || 9090;
 // eslint-disable-next-line no-underscore-dangle
 const __dirname = path.resolve();
+
+const sqlConfig = {
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  server: process.env.DB_SERVER,
+  pool: {
+    max: 10,
+    min: 0,
+    idleTimeoutMillis: 30000,
+  },
+  options: {
+    encrypt: false, // for azure
+    trustServerCertificate: true, // change to true for local dev / self-signed certs
+  },
+};
 
 const app = express();
 
@@ -48,32 +65,28 @@ const moralisSecret = process.env.MORALIS_KEY;
 
 app.post('/api/saveUserAddress', cors(), async (req, res) => {
   try {
-    await Moralis.start({
-      serverUrl,
-      appId,
-      masterKey: moralisSecret,
-    });
-
     const { body } = req;
 
-    const UserAddress = Moralis.Object.extend('UserAddress');
-
     // validation
-    const query = new Moralis.Query(UserAddress);
-    query.equalTo('email', body.email);
-    const results = await query.find();
+    const pool = await sql.connect(sqlConfig);
+    const result1 = await pool.request()
+      .input('email', sql.NVarChar, body.email)
+      .query('SELECT * FROM USER_INFO WHERE Email = @email AND WalletAddress IS NOT NULL');
 
-    if (results.length > 0) {
+    if (result1.recordset.length > 0) {
       res.status(500).send('이미 신청한 email입니다.');
       return;
     }
 
-    const userAddress = new UserAddress();
-
-    userAddress.set('address', body.address);
-    userAddress.set('email', body.email);
-
-    await userAddress.save();
+    // insert data
+    await await pool.request()
+      .input('email', sql.NVarChar, body.email)
+      .input('walletAddress', sql.NVarChar, body.address)
+      .query(`
+        UPDATE USER_INFO
+        SET WalletAddress = @walletAddress
+        WHERE Email = @email
+      `);
 
     res.sendStatus(200);
   } catch (e) {
@@ -83,23 +96,19 @@ app.post('/api/saveUserAddress', cors(), async (req, res) => {
 
 app.get('/api/fetchUsers', cors(), async (req, res) => {
   try {
-    await Moralis.start({
-      serverUrl,
-      appId,
-      masterKey: moralisSecret,
-    });
+    const pool = await sql.connect(sqlConfig);
+    const result = await pool.request()
+      .query(`
+        SELECT * FROM USER_INFO
+      `);
 
-    const UserAddress = Moralis.Object.extend('UserAddress');
-    const query = new Moralis.Query(UserAddress);
-
-    const results = await query.find();
     const data = [];
 
-    for (let i = 0; i < results.length; i += 1) {
-      const user = results[i];
-      const address = user.get('address');
-      const email = user.get('email');
-      const isSent = user.get('isSent');
+    for (let i = 0; i < result.recordset.length; i += 1) {
+      const userInfo = result.recordset[i];
+      const address = userInfo.WalletAddress;
+      const email = userInfo.Email;
+      const isSent = userInfo.IsSent;
 
       data.push({ address, email, isSent });
     }
@@ -141,6 +150,9 @@ app.post('/api/transferNfts', cors(), async (req, res) => {
     }
 
     // 2. 선택한 NFT의 소유가 sender address인지 검증
+    /*
+    -- Opensea의 lazy minted로 인한 소유권 조회가 불가능
+    -- 참고: https://forum.moralis.io/t/nft-minted-on-opensea-does-not-show-up-in-ethnftowners/1769
     const userNfts = await Moralis.Web3API.token.getTokenIdOwners({
       chain: 'rinkeby',
       address: contractAddress,
@@ -148,6 +160,7 @@ app.post('/api/transferNfts', cors(), async (req, res) => {
     });
 
     const data = userNfts.result;
+
     let hasOwnership = false;
 
     for (let i = 0; i < data.length; i += 1) {
@@ -160,17 +173,19 @@ app.post('/api/transferNfts', cors(), async (req, res) => {
     }
 
     if (!hasOwnership) {
-      res.status(401).send('올바르지 않은 사용자입니다.');
+      res.status(401).send('해당 사용자에게 NFT 소유권이 없습니다.');
       return;
     }
+    */
 
     // receiver 추출
-    const UserAddress = Moralis.Object.extend('UserAddress');
-    const query = new Moralis.Query(UserAddress);
-    query.equalTo('isSent', false);
-    const results = await query.find();
+    const pool = await sql.connect(sqlConfig);
+    const result = await pool.request()
+      .query(`
+        SELECT * FROM USER_INFO WHERE IsSent = 0
+      `);
 
-    if (results.length === 0) {
+    if (result.recordset.length === 0) {
       res.status(500).send('모두 전송되었습니다.');
       return;
     }
@@ -178,13 +193,13 @@ app.post('/api/transferNfts', cors(), async (req, res) => {
     // NFT 전송
     let successCount = 0;
 
-    for (let i = 0; i < results.length; i += 1) {
-      const user = results[i];
-      const receiver = user.get('address');
+    for (let i = 0; i < result.recordset.length; i += 1) {
+      const user = result.recordset[i];
+      const receiverAddress = user.WalletAddress;
 
       const option = {
         type: type.toLowerCase(),
-        receiver,
+        receiver: receiverAddress,
         contractAddress,
         tokenId,
         amount: 1,
@@ -193,10 +208,17 @@ app.post('/api/transferNfts', cors(), async (req, res) => {
       // eslint-disable-next-line no-await-in-loop
       await Moralis.transfer(option);
 
-      user.set('isSent', true);
+      // eslint-disable-next-line no-await-in-loop
+      const newPool = await sql.connect(sqlConfig);
 
       // eslint-disable-next-line no-await-in-loop
-      await user.save();
+      await newPool.request()
+        .input('walletAddress', sql.NVarChar, receiverAddress)
+        .query(`
+          UPDATE USER_INFO
+          SET IsSent = 1
+          WHERE WalletAddress = @walletAddress
+        `);
 
       successCount += 1;
     }

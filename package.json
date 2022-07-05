@@ -25,6 +25,7 @@
     "express": "^4.18.1",
     "moralis": "^1.8.0",
     "mssql": "^8.1.2",
+    "nodemailer": "^6.7.6",
     "web3": "^1.7.4"
   },
   "devDependencies": {

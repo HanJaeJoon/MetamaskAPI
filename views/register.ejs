@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <%- include("./shared/header.ejs") %>
+</head>
+
+<body class="p-5">
+  <h3>Email 전송</h3>
+  <p>입력된 정보로 사용자를 등록하고, email 전송</p>
+  <div class="form-group">
+    <label for="name">Name</label>
+    <input type="text" class="form-control" id="name" value="" />
+  </div>
+  <div class="form-group">
+    <label for="email">Email</label>
+    <input type="email" class="form-control" id="email" value="" />
+  </div>
+  <button id="btn-send-email" class="btn btn-danger btn-lg btn-block my-3">Email 전송하기</button>
+
+  <script src="/register.js"></script>
+
+</html>

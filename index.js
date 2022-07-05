@@ -6,6 +6,7 @@ import 'dotenv/config';
 // eslint-disable-next-line import/extensions
 import Moralis from 'moralis/node.js';
 import sql from 'mssql';
+import nodemailer from 'nodemailer';
 
 const PORT = process.env.PORT || 9090;
 // eslint-disable-next-line no-underscore-dangle
@@ -35,6 +36,7 @@ app
   .set('view engine', 'ejs')
   .get('/test', (req, res) => res.render('test'))
   .get('/admin', (req, res) => res.render('admin'))
+  .get('/register', (req, res) => res.render('register'))
   .get('/:authKey', async (req, res) => {
     const pool = await sql.connect(sqlConfig);
     const result = await pool.request()
@@ -68,15 +70,22 @@ app
     }
   });
 
-const serverUrl = process.env.MORALIS_APP_URL;
-const appId = process.env.MORALIS_APP_ID;
-const moralisSecret = process.env.MORALIS_KEY;
+const validateEmail = (email) => String(email)
+  .toLowerCase()
+  .match(
+    /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+  );
 
 app.post('/api/saveUserAddress', cors(), async (req, res) => {
   try {
     const { body } = req;
 
     // validation
+    if (!validateEmail(body.email)) {
+      res.status(500).send('올바르지 않은 email 형식입니다.');
+      return;
+    }
+
     const pool = await sql.connect(sqlConfig);
     const result1 = await pool.request()
       .input('email', sql.NVarChar, body.email)
@@ -88,7 +97,7 @@ app.post('/api/saveUserAddress', cors(), async (req, res) => {
     }
 
     // insert data
-    await await pool.request()
+    await pool.request()
       .input('email', sql.NVarChar, body.email)
       .input('walletAddress', sql.NVarChar, body.address)
       .query(`
@@ -127,6 +136,10 @@ app.get('/api/fetchUsers', cors(), async (req, res) => {
     res.status(500).send(`Internal Server Error - ${e.message}`);
   }
 });
+
+const serverUrl = process.env.MORALIS_APP_URL;
+const appId = process.env.MORALIS_APP_ID;
+const moralisSecret = process.env.MORALIS_KEY;
 
 app.post('/api/transferNfts', cors(), async (req, res) => {
   try {
@@ -235,6 +248,68 @@ app.post('/api/transferNfts', cors(), async (req, res) => {
     res.status(200).send(`${successCount} 건 전송 성공!`);
   } catch (e) {
     console.log(e);
+    res.status(500).send(`Internal Server Error - ${e.message}`);
+  }
+});
+
+const sendEmail = async (sendEmailOption) => {
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    host: 'smtp.gmail.com',
+    // port: 587,
+    // secure: false,
+    auth: {
+      user: process.env.GMAIL_ID,
+      pass: process.env.GMAIL_PASSWORD,
+    },
+  });
+
+  await transporter.sendMail(sendEmailOption);
+};
+
+app.post('/api/saveUserAndSendEmail', cors(), async (req, res) => {
+  try {
+    const { body } = req;
+
+    // validation
+    if (!validateEmail(body.email)) {
+      res.status(500).send('올바르지 않은 email 형식입니다.');
+      return;
+    }
+
+    const pool = await sql.connect(sqlConfig);
+    const result1 = await pool.request()
+      .input('email', sql.NVarChar, body.email)
+      .query('SELECT * FROM USER_INFO WHERE Email = @email AND WalletAddress IS NOT NULL');
+
+    if (result1.recordset.length > 0) {
+      res.status(500).send('이미 등록된 email입니다.');
+      return;
+    }
+
+    // insert data
+    const result2 = await pool.request()
+      .input('email', sql.NVarChar, body.email)
+      .input('name', sql.NVarChar, body.name)
+      .query(`
+        INSERT USER_INFO ([Email], [Name])
+        VALUES (@email, @name)
+
+        SELECT * FROM USER_INFO WHERE UserIdx = @@IDENTITY
+      `);
+
+    // send email
+    const link = `${req.protocol}://${req.get('host')}/${result2.recordset[0].AuthKey}`;
+
+    sendEmail({
+      from: 'jaejoon.han@crevisse.com',
+      to: body.email,
+      subject: 'NFT 신청 링크',
+      html: `<a href="${link}">링크</a>`,
+    });
+
+    res.sendStatus(200);
+  } catch (e) {
     res.status(500).send(`Internal Server Error - ${e.message}`);
   }
 });

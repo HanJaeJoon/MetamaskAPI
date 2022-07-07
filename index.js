@@ -301,7 +301,7 @@ app.post('/api/saveUserAndSendEmail', cors(), async (req, res) => {
         INSERT USER_INFO ([Email], [Name])
         VALUES (@email, @name)
 
-        SELECT * FROM USER_INFO WHERE UserIdx = @@IDENTITY
+        SELECT * FROM USER_INFO WHERE UserInfoIdx = @@IDENTITY
       `);
 
     // send email

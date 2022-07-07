@@ -21,11 +21,11 @@ const sqlConfig = {
   pool: {
     max: 10,
     min: 0,
-    idleTimeoutMillis: 30000,
+    idleTimeoutMillis: 30_000,
   },
   options: {
-    encrypt: false, // for azure
-    trustServerCertificate: true, // change to true for local dev / self-signed certs
+    encrypt: process.env.DB_OPTIONS_ENCRYPT === 'true', // true for azure
+    trustServerCertificate: true, // true for local dev / self-signed certs
   },
 };
 
@@ -39,14 +39,18 @@ app
   .get('/admin', (req, res) => res.render('admin'))
   .get('/register', (req, res) => res.render('register'))
   .get('/:authKey', async (req, res) => {
-    const pool = await sql.connect(sqlConfig);
-    const result = await pool.request()
-      .input('authKey', sql.Char, req.params.authKey)
-      .query(`
-        SELECT * FROM USER_INFO WHERE AuthKey = @authKey
-      `);
+    try {
+      const pool = await sql.connect(sqlConfig);
+      const result = await pool.request()
+        .input('authKey', sql.Char, req.params.authKey)
+        .query(`
+          SELECT * FROM USER_INFO WHERE AuthKey = @authKey
+        `);
 
-    return res.render('email', { email: result.recordset[0]?.Email });
+      return res.render('email', { email: result.recordset[0]?.Email });
+    } catch (e) {
+      res.status(500).send(`Internal Server Error - ${e.message}`);
+    }
   })
   .use(express.json())
   .listen(PORT, () => console.log(`Listening on ${PORT}`));
@@ -65,6 +69,7 @@ app
         limit: '20',
         include_orders: 'false',
       });
+
       res.json(result);
     } catch (e) {
       res.status(500).send(`Internal Server Error - ${e.message}`);

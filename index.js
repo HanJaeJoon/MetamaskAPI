@@ -305,7 +305,7 @@ app.post('/api/saveUserAndSendEmail', cors(), async (req, res) => {
       `);
 
     // send email
-    const link = `${req.protocol}://${req.get('host')}/${result2.recordset[0].AuthKey}`;
+    const link = `https://${req.get('host')}/${result2.recordset[0].AuthKey}`;
 
     sendEmail({
       from: 'jaejoon.han@crevisse.com',

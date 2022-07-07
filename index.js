@@ -87,6 +87,11 @@ app.post('/api/saveUserAddress', cors(), async (req, res) => {
     const { body } = req;
 
     // validation
+    if (!body.authKey) {
+      res.status(500).send('잘못된 링크입니다.');
+      return;
+    }
+
     if (!validateEmail(body.email)) {
       res.status(500).send('올바르지 않은 email 형식입니다.');
       return;
@@ -95,7 +100,14 @@ app.post('/api/saveUserAddress', cors(), async (req, res) => {
     const pool = await sql.connect(sqlConfig);
     const result1 = await pool.request()
       .input('email', sql.NVarChar, body.email)
-      .query('SELECT * FROM USER_INFO WHERE Email = @email AND WalletAddress IS NOT NULL');
+      .input('authKey', sql.NVarChar, body.authKey)
+      .query(`
+        SELECT *
+        FROM USER_INFO
+        WHERE Email = @email
+        AND AuthKey = @authKey
+        AND WalletAddress IS NOT NULL
+      `);
 
     if (result1.recordset.length > 0) {
       res.status(500).send('이미 신청한 email입니다.');
@@ -103,14 +115,21 @@ app.post('/api/saveUserAddress', cors(), async (req, res) => {
     }
 
     // insert data
-    await pool.request()
+    const result2 = await pool.request()
       .input('email', sql.NVarChar, body.email)
+      .input('authKey', sql.NVarChar, body.authKey)
       .input('walletAddress', sql.NVarChar, body.address)
       .query(`
         UPDATE USER_INFO
         SET WalletAddress = @walletAddress
         WHERE Email = @email
+        AND AuthKey = @authKey
       `);
+
+    if (result2.rowsAffected[0] === 0) {
+      res.status(500).send('잘못된 링크입니다.');
+      return;
+    }
 
     res.sendStatus(200);
   } catch (e) {

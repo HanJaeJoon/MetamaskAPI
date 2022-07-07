@@ -1,10 +1,11 @@
 const initialize = async () => {
-  const userInfo = { address: null, email: null };
+  const userInfo = { address: null, email: null, authKey: null };
   // controls
   const inputEmail = document.getElementById('email');
 
   const setEmail = () => {
     const email = inputEmail.value;
+    const authKey = window.location.pathname.split('/')[1];
 
     if (email) {
       userInfo.email = email;
@@ -13,6 +14,8 @@ const initialize = async () => {
       inputEmail.value = '';
       inputEmail.disabled = false;
     }
+
+    userInfo.authKey = authKey;
   };
 
   // Web3

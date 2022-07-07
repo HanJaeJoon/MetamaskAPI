@@ -82,6 +82,23 @@ const initialize = async () => {
   }
 
   const metaMaskClientCheck = async () => {
+    const mobileMatch = [
+      /Android/i,
+      /webOS/i,
+      /iPhone/i,
+      /iPad/i,
+      /iPod/i,
+      /BlackBerry/i,
+      /Windows Phone/i,
+    ];
+
+    if (mobileMatch.some((toMatchItem) => navigator.userAgent.match(toMatchItem))) {
+      const url = window.location.href;
+
+      window.location.href = `https://metamask.app.link/dapp/${url}`;
+      return;
+    }
+
     if (isMetaMaskInstalled()) {
       ethereum.autoRefreshOnNetworkChange = false;
       ethereum.on('accountsChanged', handleNewAccounts);

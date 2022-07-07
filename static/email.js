@@ -85,21 +85,27 @@ const initialize = async () => {
   }
 
   const metaMaskClientCheck = async () => {
-    const mobileMatch = [
-      /Android/i,
-      /webOS/i,
-      /iPhone/i,
-      /iPad/i,
-      /iPod/i,
-      /BlackBerry/i,
-      /Windows Phone/i,
-    ];
+    const queryString = window.location.search;
+    const params = new URLSearchParams(queryString);
+    const metamaskApp = params.get('metamaskApp');
 
-    if (mobileMatch.some((toMatchItem) => navigator.userAgent.match(toMatchItem))) {
-      const url = window.location.href;
+    if (metamaskApp !== 'true') {
+      const mobileMatch = [
+        /Android/i,
+        /webOS/i,
+        /iPhone/i,
+        /iPad/i,
+        /iPod/i,
+        /BlackBerry/i,
+        /Windows Phone/i,
+      ];
 
-      window.location.href = `https://metamask.app.link/dapp/${url}`;
-      return;
+      if (mobileMatch.some((toMatchItem) => navigator.userAgent.match(toMatchItem))) {
+        const url = window.location.href;
+
+        window.location.href = `https://metamask.app.link/dapp/${url}?metamaskApp=true`;
+        return;
+      }
     }
 
     if (isMetaMaskInstalled()) {
